@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bienestar 2X</title>
+    <link rel="apple-touch-icon" href="https://emojicdn.elk.sh/🚥">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [historial, setHistorial] = useState([]);
+            const [nota, setNota] = useState("");
+            
+            useEffect(() => {
+                const guardado = localStorage.getItem('miSemaforoData');
+                if (guardado) setHistorial(JSON.parse(guardado));
+            }, []);
+
+            const guardar = (valor, color, emoji) => {
+                const ahora = new Date();
+                const hora = ahora.getHours();
+                const franja = hora < 15 ? "Mañana" : "Tarde/Noche";
+                
+                const nuevo = {
+                    id: Date.now(),
+                    fecha: ahora.toLocaleDateString(),
+                    hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    franja, valor, color, emoji, nota: nota || "Sin notas"
+                };
+
+                const actualizado = [nuevo, ...historial];
+                setHistorial(actualizado);
+                localStorage.setItem('miSemaforoData', JSON.stringify(actualizado));
+                setNota("");
+            };
+
+            const horaActual = new Date().getHours();
+            const franjaActual = horaActual < 15 ? "Mañana" : "Tarde/Noche";
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col shadow-lg">
+                    <header className="p-6 bg-indigo-700 text-white text-center shadow-md">
+                        <h1 className="text-2xl font-black italic tracking-tight">BIENESTAR 2X</h1>
+                        <p className="text-xs opacity-80 uppercase font-bold mt-1">Registro de {franjaActual}</p>
+                    </header>
+
+                    <main className="p-5 flex-1 space-y-6">
+                        <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100 shadow-inner">
+                            <input 
+                                type="text" 
+                                value={nota}
+                                onChange={(e) => setNota(e.target.value)}
+                                placeholder="¿Por qué te sientes así?"
+                                className="w-full p-4 rounded-2xl border-none mb-4 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                            <div className="flex justify-between items-center px-2">
+                                <button onClick={() => guardar(3, 'bg-green-500', '😊')} className="flex flex-col items-center group">
+                                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-3xl shadow-lg active:scale-90 transition-transform text-white">😊</div>
+                                    <span className="text-[10px] font-bold mt-2 text-green-600">BIEN</span>
+                                </button>
+                                <button onClick={() => guardar(2, 'bg-orange-500', '😐')} className="flex flex-col items-center group">
+                                    <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-3xl shadow-lg active:scale-90 transition-transform text-white">😐</div>
+                                    <span className="text-[10px] font-bold mt-2 text-orange-600">REGULAR</span>
+                                </button>
+                                <button onClick={() => guardar(1, 'bg-red-500', '😞')} className="flex flex-col items-center group">
+                                    <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-3xl shadow-lg active:scale-90 transition-transform text-white">😞</div>
+                                    <span className="text-[10px] font-bold mt-2 text-red-600">MAL</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest px-2">Historial</h2>
+                            {historial.map(item => (
+                                <div key={item.id} className="flex items-center p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                                    <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center text-2xl text-white mr-4 shadow-sm`}>
+                                        {item.emoji}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between">
+                                            <span className="text-[10px] font-bold text-indigo-500 uppercase">{item.franja}</span>
+                                            <span className="text-[10px] text-slate-400">{item.fecha} · {item.hora}</span>
+                                        </div>
+                                        <p className="text-sm font-semibold text-slate-700">{item.nota}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
